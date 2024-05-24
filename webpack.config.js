@@ -23,7 +23,23 @@ const BrowserExtensionFileTypes = new Map([
   ['chrome', 'zip'],
 ])
 
-const getExtensionFileType = (browser) => BrowserExtensionFileTypes.get(browser)
+function getReloaderPlugin() {
+  if (nodeEnv !== 'development') {
+    return () => { this.apply = () => {} }
+  }
+
+  const options = {
+    port: 9090, // Which port use to create the server
+    reloadPage: true, // Force the reload of the page also
+    entries: { // TODO: reload manifest on update
+      contentScript: 'js/contentScript.bundle.js',
+      background: 'js/background.bundle.js',
+      extensionPage: ['popup', 'options'],
+    }
+  }
+
+  return new ExtReloader(options)
+}
 
 module.exports = {
   devtool: false,
@@ -110,7 +126,7 @@ module.exports = {
         path.join(process.cwd(), `extension/${targetBrowser}`),
         path.join(
           process.cwd(),
-          `extension/${targetBrowser}.${getExtensionFileType(targetBrowser)}`
+          `extension/${targetBrowser}.${BrowserExtensionFileTypes.get(targetBrowser)}`
         ),
       ],
       cleanStaleWebpackAssets: false,
@@ -143,17 +159,7 @@ module.exports = {
       patterns: [{from: 'src/assets', to: 'assets'}],
     }),
     // plugin to enable browser reloading in development mode
-    nodeEnv === 'development' ?
-      new ExtReloader({
-          port: 9090, // Which port use to create the server
-          reloadPage: true, // Force the reload of the page also
-          entries: { // TODO: reload manifest on update
-            contentScript: 'contentScript',
-            background: 'background',
-            extensionPage: ['popup', 'options'],
-          },
-        })
-      : () => { this.apply = () => {} },
+    getReloaderPlugin()
   ],
   optimization: {
     minimize: true,
@@ -179,7 +185,7 @@ module.exports = {
               {
                 format: 'zip',
                 source: path.join(destPath, targetBrowser),
-                destination: `${path.join(destPath, targetBrowser)}.${getExtensionFileType(targetBrowser)}`,
+                destination: `${path.join(destPath, targetBrowser)}.${BrowserExtensionFileTypes.get(targetBrowser)}`,
                 options: {zlib: {level: 6}},
               },
             ],
