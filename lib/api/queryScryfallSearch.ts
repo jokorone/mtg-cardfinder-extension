@@ -4,10 +4,10 @@ export const queryScryfallSearch = createAPIMethod<
   {name: string},
   | Array<{
       name: string;
-      directLink: string;
-      relatedUrls: Array<string>;
-      imageUrls: Array<string>;
-      prices: Record<string, string>;
+      // directLink: string;
+      // relatedUrls: Array<string>;
+      // imageUrls: Array<string>;
+      // prices: Record<string, string>;
     }>
   | {status: number; error: string}
 >({
@@ -47,10 +47,10 @@ export const queryScryfallSearch = createAPIMethod<
 
     return data.map((card) => ({
       name: card.name,
-      directLink: card.uri,
-      relatedUrls: card.related_uris,
-      imageUrls: card.image_uris,
-      prices: card.prices,
+      // directLink: card.uri,
+      // relatedUrls: card.related_uris,
+      // imageUrls: card.image_uris,
+      // prices: card.prices,
     }));
   },
 });
