@@ -9,6 +9,20 @@ function openWebPage(url: string): Promise<Tabs.Tab> {
 }
 
 const Popup: React.FC = () => {
+  console.log('render popup');
+  const [result, setResult] = React.useState({})
+
+  React.useEffect(() => {
+    const getResults = async () => {
+      const result = await browser.storage.session.get()
+      setResult(result)
+    }
+
+    getResults()
+
+    return () => {}
+  }, [])
+
   return (
     <section id="popup">
       <h2>MtG Cardfinder</h2>
@@ -21,33 +35,10 @@ const Popup: React.FC = () => {
       >
         Options Page
       </button>
-      <div className="links__holder">
-        <ul>
-          <li>
-            <button
-              type="button"
-              onClick={(): Promise<Tabs.Tab> => {
-                return openWebPage(
-                  'https://github.com/abhijithvijayan/web-extension-starter'
-                );
-              }}
-            >
-              GitHub
-            </button>
-          </li>
-          <li>
-            <button
-              type="button"
-              onClick={(): Promise<Tabs.Tab> => {
-                return openWebPage(
-                  'https://www.buymeacoffee.com/abhijithvijayan'
-                );
-              }}
-            >
-              Buy Me A Coffee
-            </button>
-          </li>
-        </ul>
+      <div className="results_list">
+        {
+          JSON.stringify(result,null,4)
+        }
       </div>
     </section>
   );

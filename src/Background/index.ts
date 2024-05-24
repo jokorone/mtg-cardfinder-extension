@@ -1,65 +1,62 @@
-// import browser from 'webextension-polyfill'
-import {queryScryfallSearch} from 'lib/api/queryScryfallSearch';
-console.log('background script');
+import browser from 'webextension-polyfill'
+import {queryScryfallSearch} from 'lib/api/queryScryfallSearch'
 
+browser.runtime.onInstalled.addListener((): void => {
+  console.log('🦄', 'extension installed');
 
-// function openPopup() {
-//   if (!true) {
-//   // if (typeof chrome !== 'undefined' && chrome.runtime) {
-//     // see README Pitfalls
-//     // chrome.action.openPopup();
-//     // chrome.browserAction.openPopup();
-//   } else if (typeof browser !== 'undefined' && browser.runtime) {
-//     console.log('browser', browser);
+  browser.contextMenus.create(
+    {
+      id: 'log-selection',
+      title: 'Lookup MtG Card Name',
+      contexts: ['selection'],
+    },
+    () => {
+      if (browser.runtime.lastError) {
+        console.error(`ERROR while creating context menu item`)
+        console.error(browser.runtime.lastError)
+      }
+    }
+  );
 
-//     browser.browserAction.openPopup();
-//   } else {
-//     // Unsupported browser
-//     // eslint-disable-next-line no-alert
-//     alert('Unsupported browser.');
-//   }
-// }
+  browser.contextMenus.onClicked.addListener(async (info, tab) => {
+    if (!info.selectionText) return;
 
-// browser.runtime.onInstalled.addListener((): void => {
-//   console.log('🦄', 'extension installed');
+    switch (info.menuItemId) {
+      case 'log-selection':
 
-//   browser.contextMenus.create(
-//     {
-//       id: 'log-selection',
-//       title: 'Lookup MtG Card Name',
-//       contexts: ['selection'],
-//     },
-//     () => {
-//       console.log('context menu callback');
-//     }
-//   );
+        const result = await queryScryfallSearch({
+          name: info.selectionText.trim(),
+        });
 
-//   browser.contextMenus.onClicked.addListener(async (info, tab) => {
-//     switch (info.menuItemId) {
-//       case 'log-selection':
-//         // await browser.browserAction.openPopup();
-//         openPopup();
+        if ('error' in result) {
+          console.error(result);
+        } else {
+          console.log('found:');
+          console.log(...result);
+          if (!tab && tab.id) return
+          if ('openPopup' in browser.action) browser.action.openPopup()
 
-//         const result = await queryScryfallSearch({
-//           name: info.selectionText!.trim(),
-//         });
+          // works only in chrome canary
+          const db = browser.storage.session
 
-//         if ('error' in result) {
-//           console.error(result);
-//         } else {
-//           console.log(...result);
-//           if (tab && tab.id) {
-//             // console.log('sending msg');
-//             // browser.tabs.executeScript(tab.id, {
-//             //   file: 'js/contentScript.bundle.js',
-//             // });
-//             // browser.tabs.sendMessage(tab.id, 'found-cards');
-//           }
-//         }
+          const prev = await db.get()
 
-//         break;
-//       default:
-//         break;
-//     }
-//   });
-// });
+          browser.storage.local.set({
+            result: {
+            ...prev,
+            ...result
+            }
+          })
+
+          // browser.scripting.executeScript({
+          //   target: {tabId: tab.id},
+          //   files: ['js/contentScript.bundle.js'],
+          // })
+        }
+
+        break;
+      default:
+        break;
+    }
+  });
+});
