@@ -44,7 +44,6 @@
     "service_worker":  "js/background.bundle.js",
     "type": "module",
     "scripts": [
-      "browser-polyfill.js",
       "js/background.bundle.js"
     ]
   },
