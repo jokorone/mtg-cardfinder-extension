@@ -16,14 +16,18 @@ https://twitter.com/sobedominik/status/1784472842509414840
 
 ## Todo
 - [x] extension skeleton for chrome, firefox
+- [x] migrate to manifest v3
 - [x] Scryfall Api client
-- [] open popup after searching
+- [] implement popup
   - select result from found cards
   - save result to list
   - display errors
 - [] db client
 - [] save api result to db
 - [] display db contents in popup
+
+## Features
+- add list of domains where to auto-run this extension, whitelist v blacklist
 
 
 ## Browser Support
