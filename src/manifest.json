@@ -1,0 +1,61 @@
+{
+  "manifest_version": 3,
+  "name": "MtG Cardfinder",
+  "version": "0.0.1",
+  "browser_specific_settings": {
+  },
+
+  "icons": {
+    "16": "assets/icons/favicon-16.png",
+    "32": "assets/icons/favicon-32.png",
+    "48": "assets/icons/favicon-48.png",
+    "128": "assets/icons/favicon-128.png"
+  },
+  "description": "A simple browser extension to look up and save MtG cards anywhere",
+  "homepage_url": "https://github.com/jokorone/mtg-lookup-extension",
+  "short_name": "MtG Cardfinder",
+
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "storage",
+    "scripting",
+    "contextMenus"
+  ],
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "assets/icons/favicon-16.png",
+      "32": "assets/icons/favicon-32.png",
+      "48": "assets/icons/favicon-48.png",
+      "128": "assets/icons/favicon-128.png"
+    },
+    "default_title": "MtG Cardfinder"
+  },
+
+  "__chrome|opera__options_page": "options.html",
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+
+  "background": {
+    "service_worker":  "js/background.bundle.js",
+    "type": "module",
+    "scripts": [
+      "browser-polyfill.js",
+      "js/background.bundle.js"
+    ]
+  },
+
+  "content_scripts": [{
+    "matches": [
+      "http://*/*",
+      "https://*/*"
+    ],
+    "js": [
+      "js/contentScript.bundle.js"
+    ]
+  }]
+}
