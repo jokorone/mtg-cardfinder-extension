@@ -9,12 +9,15 @@ function openWebPage(url: string): Promise<Tabs.Tab> {
 }
 
 const Popup: React.FC = () => {
-  console.log('render popup');
   const [result, setResult] = React.useState({})
 
   React.useEffect(() => {
     const getResults = async () => {
-      const result = await browser.storage.session.get()
+      console.log('looking into from local storage');
+
+      const result = await browser.storage.sync.get('result')
+      console.log('found: ', result);
+
       setResult(result)
     }
 

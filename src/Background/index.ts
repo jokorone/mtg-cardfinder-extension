@@ -1,6 +1,9 @@
 import browser from 'webextension-polyfill'
 import {queryScryfallSearch} from 'lib/api/queryScryfallSearch'
 
+
+const db = browser.storage.sync
+
 browser.runtime.onInstalled.addListener((): void => {
   console.log('🦄', 'extension installed');
 
@@ -31,27 +34,19 @@ browser.runtime.onInstalled.addListener((): void => {
         if ('error' in result) {
           console.error(result);
         } else {
-          console.log('found:');
+          console.log('queried from scryfall:');
           console.log(...result);
           if (!tab && tab.id) return
           if ('openPopup' in browser.action) browser.action.openPopup()
 
-          // works only in chrome canary
-          const db = browser.storage.session
+          const model = new Map<string, typeof result[0]>()
 
-          const prev = await db.get()
+          for (const item of result) {
+            if (!model.has(item.name))
+              model.set(item.name, item)
+          }
 
-          browser.storage.local.set({
-            result: {
-            ...prev,
-            ...result
-            }
-          })
-
-          // browser.scripting.executeScript({
-          //   target: {tabId: tab.id},
-          //   files: ['js/contentScript.bundle.js'],
-          // })
+          db.set({ result: Array.from(model.entries()) })
         }
 
         break;
