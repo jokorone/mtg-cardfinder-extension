@@ -16,11 +16,13 @@
   "short_name": "MtG Cardfinder",
 
   "permissions": [
-    "tabs",
-    "activeTab",
     "storage",
-    "scripting",
-    "contextMenus"
+    "contextMenus",
+    "tabs",
+    "activeTab"
+  ],
+
+  "host_permission": [
   ],
 
   "action": {
