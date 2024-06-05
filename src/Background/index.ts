@@ -2,6 +2,15 @@ import browser from 'webextension-polyfill'
 import {queryScryfallSearch} from 'lib/api/queryScryfallSearch'
 
 
+const registerContentScript = async () => {
+  let [tab] = await browser.tabs.query({ active: true, currentWindow: true })
+
+  browser.scripting.executeScript({
+    target: { tabId: tab.id },
+    files: ["js/contentScript.bundle.js"],
+  })
+}
+
 const db = browser.storage.sync
 
 browser.runtime.onInstalled.addListener((): void => {
@@ -20,6 +29,31 @@ browser.runtime.onInstalled.addListener((): void => {
       }
     }
   );
+
+  // browser.scripting.registerContentScripts({
+  //   js: ["js/contentScript.bundle.js"]
+  // })
+
+  browser.commands.onCommand.addListener(async command => {
+    if (command !== "get-selected-text") return
+
+    let [tab] = await browser.tabs.query({ active: true, currentWindow: true })
+
+    const [{ result }] = await browser.scripting.executeScript({
+      target: {tabId: tab.id},
+      func: () => getSelection().toString()
+    });
+
+    console.log(result);
+
+
+    browser.scripting.executeScript({
+      target: { tabId: tab.id },
+      // files: ["js/contentScript.bundle.js"],
+      func: (res) => alert(res),
+      args: [result]
+    })
+  })
 
   browser.contextMenus.onClicked.addListener(async (info, tab) => {
     if (!info.selectionText) return;
@@ -47,6 +81,13 @@ browser.runtime.onInstalled.addListener((): void => {
           }
 
           db.set({ result: Array.from(model.entries()) })
+
+          console.log('executing in...', tab.id, tab.title);
+
+          // browser.scripting.executeScript({
+          //   target: { tabId: tab.id },
+          //   files: ["js/contentScript.bundle.js"],
+          // })
         }
 
         break;

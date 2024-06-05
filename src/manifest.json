@@ -19,7 +19,8 @@
     "storage",
     "contextMenus",
     "tabs",
-    "activeTab"
+    "activeTab",
+    "scripting"
   ],
 
   "host_permission": [
@@ -57,6 +58,18 @@
     ],
     "js": [
       "js/contentScript.bundle.js"
-    ]
-  }]
+    ],
+    "runat": "document_idle"
+  }],
+
+  "commands": {
+    "get-selected-text": {
+        "suggested_key": {
+            "default": "Ctrl+Shift+L",
+            "linux": "Ctrl+Shift+L",
+            "mac": "Command+Shift+L"
+        },
+        "description": "Get the selected text from the active tab."
+    }
+}
 }
