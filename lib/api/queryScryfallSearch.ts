@@ -1,14 +1,16 @@
-import {createAPIMethod} from '../util';
+import {Prettify, createAPIMethod} from '../util';
+
+export type ScryfallResponse = Array<{
+  name: string;
+  directLink: string;
+  relatedUrls: Array<string>;
+  imageUrls: Record<string, string>;
+  prices: Record<string, string>;
+}>
 
 export const queryScryfallSearch = createAPIMethod<
   {name: string},
-  | Array<{
-      name: string;
-      // directLink: string;
-      // relatedUrls: Array<string>;
-      // imageUrls: Array<string>;
-      // prices: Record<string, string>;
-    }>
+  | ScryfallResponse
   | {status: number; error: string}
 >({
   buildUrl: (opts) => {
@@ -47,10 +49,10 @@ export const queryScryfallSearch = createAPIMethod<
 
     return data.map((card) => ({
       name: card.name,
-      // directLink: card.uri,
-      // relatedUrls: card.related_uris,
-      // imageUrls: card.image_uris,
-      // prices: card.prices,
+      directLink: card.uri,
+      relatedUrls: card.related_uris,
+      imageUrls: card.image_uris,
+      prices: card.prices,
     }));
   },
 });

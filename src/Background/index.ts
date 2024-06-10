@@ -30,29 +30,19 @@ browser.runtime.onInstalled.addListener((): void => {
     }
   );
 
-  // browser.scripting.registerContentScripts({
-  //   js: ["js/contentScript.bundle.js"]
-  // })
+  const executeContentSript = (tab: browser.Tabs.Tab) => {
+    browser.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ["js/contentScript.bundle.js"],
+      // func: (res) => alert(JSON.stringify(Array.from(res))),
+      // args: [result]
+    })
+  }
 
   browser.commands.onCommand.addListener(async command => {
     if (command !== "get-selected-text") return
-
-    let [tab] = await browser.tabs.query({ active: true, currentWindow: true })
-
-    const [{ result }] = await browser.scripting.executeScript({
-      target: {tabId: tab.id},
-      func: () => getSelection().toString()
-    });
-
-    console.log(result);
-
-
-    browser.scripting.executeScript({
-      target: { tabId: tab.id },
-      // files: ["js/contentScript.bundle.js"],
-      func: (res) => alert(res),
-      args: [result]
-    })
+    const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
+    executeContentSript(tab)
   })
 
   browser.contextMenus.onClicked.addListener(async (info, tab) => {
@@ -73,6 +63,8 @@ browser.runtime.onInstalled.addListener((): void => {
           if (!tab && tab.id) return
           if ('openPopup' in browser.action) browser.action.openPopup()
 
+          executeContentSript(tab)
+
           const model = new Map<string, typeof result[0]>()
 
           for (const item of result) {
@@ -83,11 +75,6 @@ browser.runtime.onInstalled.addListener((): void => {
           db.set({ result: Array.from(model.entries()) })
 
           console.log('executing in...', tab.id, tab.title);
-
-          // browser.scripting.executeScript({
-          //   target: { tabId: tab.id },
-          //   files: ["js/contentScript.bundle.js"],
-          // })
         }
 
         break;
