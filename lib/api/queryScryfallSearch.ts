@@ -1,17 +1,26 @@
 import {Prettify, createAPIMethod} from '../util';
 
+type SingleSource = {
+  name: string,
+  imageUrls: Record<string, string>;
+}
+type ImageSource = SingleSource | {
+  faces: [SingleSource, SingleSource]
+}
+
+
 export type ScryfallResponse = Array<{
   name: string;
   directLink: string;
   relatedUrls: Array<string>;
-  imageUrls: Record<string, string>;
   prices: Record<string, string>;
-}>
+} & ImageSource>
+
 
 export const queryScryfallSearch = createAPIMethod<
-  {name: string},
+  { name: string },
   | ScryfallResponse
-  | {status: number; error: string}
+  | { status: number; error: string }
 >({
   buildUrl: (opts) => {
     const url = new URL('https://api.scryfall.com/cards/search');
@@ -19,6 +28,10 @@ export const queryScryfallSearch = createAPIMethod<
     return url;
   },
   handleResponse: async (response, opts) => {
+    if (!('json' in response)) {
+      console.error('something went wrong!!', response)
+    }
+
     const result = await response.json();
 
     if (result.status === 404) {
@@ -47,12 +60,22 @@ export const queryScryfallSearch = createAPIMethod<
       data.push(result.data[0]);
     }
 
-    return data.map((card) => ({
-      name: card.name,
-      directLink: card.uri,
-      relatedUrls: card.related_uris,
-      imageUrls: card.image_uris,
-      prices: card.prices,
-    }));
+    return data.map((card) => {
+      const imageSource = 'image_uris' in card
+        ? { imageUrls: card.image_uris }
+        : { faces:
+          card.card_faces.map(
+            ({name, image_uris}) => ({ name, imageUrls: image_uris })
+          )
+        }
+
+      return {
+        name: card.name,
+        directLink: card.uri,
+        relatedUrls: card.related_uris,
+        prices: card.prices,
+        ...imageSource,
+      }
+    });
   },
 });

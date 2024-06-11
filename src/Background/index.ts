@@ -11,8 +11,6 @@ const registerContentScript = async () => {
   })
 }
 
-const db = browser.storage.sync
-
 browser.runtime.onInstalled.addListener((): void => {
   console.log('🦄', 'extension installed');
 
@@ -64,19 +62,7 @@ browser.runtime.onInstalled.addListener((): void => {
           if ('openPopup' in browser.action) browser.action.openPopup()
 
           executeContentSript(tab)
-
-          const model = new Map<string, typeof result[0]>()
-
-          for (const item of result) {
-            if (!model.has(item.name))
-              model.set(item.name, item)
-          }
-
-          db.set({ result: Array.from(model.entries()) })
-
-          console.log('executing in...', tab.id, tab.title);
         }
-
         break;
       default:
         break;

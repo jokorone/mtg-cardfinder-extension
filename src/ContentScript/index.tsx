@@ -24,11 +24,12 @@ import React from 'react';
 
   const root = createRoot(document.getElementById('content-script-outlet'))
 
-  console.log(`
-      $$$
-          RENDER <OUTLET response={${result[0].name}}></OUTLET>
-      $$$
-  `);
+  // console.log(`
+  //     $$$
+  //         RENDER <OUTLET response={${result[0].name}}></OUTLET>
+  //         json: ${JSON.stringify(result, null, 4)}
+  //     $$$
+  // `);
 
   root.render(<>
     <Outlet response={result}></Outlet>
