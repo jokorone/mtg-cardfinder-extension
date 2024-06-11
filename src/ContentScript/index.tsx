@@ -24,7 +24,13 @@ import React from 'react';
 
   const root = createRoot(document.getElementById('content-script-outlet'))
 
+  console.log(`
+      $$$
+          RENDER <OUTLET response={${result[0].name}}></OUTLET>
+      $$$
+  `);
+
   root.render(<>
-    <Outlet response={result} />
+    <Outlet response={result}></Outlet>
   </>)
 })()

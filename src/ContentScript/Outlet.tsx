@@ -1,66 +1,125 @@
 import * as React from 'react';
-
 import { ScryfallResponse } from 'lib/api/queryScryfallSearch';
 
 const addCardToCollection = (card: ScryfallResponse[0]) => {
 
 }
 
-const Card = (card: ScryfallResponse[0]) => {
-  return <>
-      <img
-        src={card.imageUrls.png}
-        alt={card.name}
-        style={{
-          width: '250px',
-          height: 'auto',
-          margin: 0,
-          // border: true ? '1px solid white' : ''
-        }}
-      />
-      <button
-        onClick={() => addCardToCollection(card)}
-        style={{
-          marginLeft: '.5rem',
-          marginTop: 'auto',
-        }}>
-          add {card.name} to collection
-      </button>
-</>
+// CUSTOM HOOKS
+const useMousePositionOnce = () => {
+  const [mousePosition, setMousePosition] = React.useState<{x:number,y:number}>({ x: null, y: null });
+
+  React.useEffect(() => {
+    const allHoveredElements = document.querySelectorAll(':hover');
+     // Get the most specific hovered element
+    const hoveredElement = allHoveredElements[allHoveredElements.length - 1];
+
+    if (!hoveredElement) return
+
+    const rect = hoveredElement.getBoundingClientRect();
+
+    setMousePosition({
+      x: (rect.x - (rect.x / 2)) + window.scrollX,
+      y: (rect.y - (rect.y / 2)) + window.scrollY,
+    })
+
+  }, []);
+
+  return mousePosition;
+};
+
+const useDestroyOnClickOutside = () => {
+  const [destroy, setDestroy] = React.useState(false)
+
+  React.useEffect(() => {
+    const listener = () => {
+      setDestroy(true)
+    }
+
+    window.addEventListener('click', listener, { once: true });
+
+    return () => window.removeEventListener('click', listener)
+  })
+
+  return destroy
 }
 
-const Outlet = ({ response }: { response: ScryfallResponse }) => {
-  console.log('render outlet');
+// COMPONENTS
+const Card: React.FC<ScryfallResponse[0]> = ({...card}) => {
+  const [hovered, setHovered] = React.useState(false)
 
-  // const [mouseCoords, setMouseCoords] = React.useState({ x: 0, y: 0 })
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <img
+        src={card.imageUrls.normal}
+        alt={card.name}
+        style={{
+          width: 'max(200px, 8rem)',
+          height: 'auto',
+          margin: 0,
+        }}
+      />
+      {hovered &&
+        <button
+          onClick={() => addCardToCollection(card)}
+          style={{
+            marginLeft: '.5rem',
+          }}>
+            add {card.name} to collection
+        </button>
+      }
+  </div>)
+}
 
-
-  // React.useEffect(() => {
-  //   document.body.onmousemove = (e => {
-  //     setMouseCoords({ x: e.clientX, y: e.clientY })
-  //     // console.log(mouseCoords);
-  //   })
-
-  //   return () => document.body.onmousemove = void 0
-  // }, [])
+const OutletContainer: React.FC<{children: React.ReactNode}> = ({children}) => {
+  const mousePosition = useMousePositionOnce()
 
   return <div className="outlet-wrapper" style={{
     position: 'absolute',
     zIndex: 999,
-    border: '1px solid red',
+    left: `${mousePosition.x ?? 0}px`,
+    top: `${mousePosition.y ?? 0}px`,
   }}>
+    {/* { JSON.stringify(mousePosition) } */}
+    {children}
+  </div>
+}
+
+const Outlet: React.FC<{response: ScryfallResponse}> = ({ response }) => {
+  const destroy = useDestroyOnClickOutside()
+
+  if (destroy) {
+    return <></>
+  }
+
+  if (response.length > 10) {
+    return <OutletContainer>
+      <h2 style={{
+        margin: '.5rem',
+        background: 'white',
+      }}></h2>
+      Found too many cards
+    </OutletContainer>
+  }
+
+  return <OutletContainer>
     {
       response.map((card, i) => {
         return <div className="card" key={i}
           style={{
             display: 'flex',
             flexDirection: 'row',
+            margin: '.5rem',
           }}>
           <Card {...card}></Card>
         </div>
       })
     }
-  </div>
+
+  </OutletContainer>
 }
 
 export default Outlet
