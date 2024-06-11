@@ -3,6 +3,8 @@ import browser from 'webextension-polyfill';
 import type {Tabs} from 'webextension-polyfill';
 
 import './styles.scss';
+import { useStorage } from 'lib/storage';
+import { ScryfallResponse } from 'lib/api/queryScryfallSearch';
 
 function openWebPage(url: string): Promise<Tabs.Tab> {
   return browser.tabs.create({url});
@@ -10,12 +12,11 @@ function openWebPage(url: string): Promise<Tabs.Tab> {
 
 const Popup: React.FC = () => {
   const [result, setResult] = React.useState({})
+  const [storage, ] = useStorage<ScryfallResponse[0]>('name')
 
   React.useEffect(() => {
     const getResults = async () => {
-      console.log('looking into from local storage');
-
-      const result = await browser.storage.sync.get('result')
+      const result = await storage.getAll()
       console.log('found: ', result);
 
       setResult(result)
@@ -29,6 +30,9 @@ const Popup: React.FC = () => {
   return (
     <section id="popup">
       <h2>MtG Cardfinder</h2>
+      <div className="controls">
+        <button onClick={() => storage.clear()}>Clear DB</button>
+      </div>
       <button
         id="options__button"
         type="button"
@@ -43,6 +47,7 @@ const Popup: React.FC = () => {
           JSON.stringify(result,null,4)
         }
       </div>
+
     </section>
   );
 };

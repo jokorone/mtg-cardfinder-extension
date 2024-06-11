@@ -1,34 +1,31 @@
-import * as React from 'react';
-import { ScryfallResponse } from 'lib/api/queryScryfallSearch';
-
-const addCardToCollection = (card: ScryfallResponse[0]) => {
-
-}
+import * as React from 'react'
+import { ScryfallResponse } from 'lib/api/queryScryfallSearch'
+import { useStorage } from 'lib/storage'
 
 // CUSTOM HOOKS
 const useMousePositionOnce = () => {
-  const [mousePosition, setMousePosition] = React.useState<{x:number,y:number}>({ x: null, y: null });
+  const [mousePosition, setMousePosition] = React.useState<{x:number,y:number}>({ x: null, y: null })
 
   React.useEffect(() => {
-    const allHoveredElements = document.querySelectorAll(':hover');
+    const allHoveredElements = document.querySelectorAll(':hover')
      // Get the most specific hovered element
-    const hoveredElement = allHoveredElements[allHoveredElements.length - 1];
+    const hoveredElement = allHoveredElements[allHoveredElements.length - 1]
 
     if (!hoveredElement) return
 
-    const rect = hoveredElement.getBoundingClientRect();
+    const rect = hoveredElement.getBoundingClientRect()
 
     setMousePosition({
       x: (rect.x - (rect.x / 2)) + window.scrollX,
       y: (rect.y - (rect.y / 2)) + window.scrollY,
     })
 
-  }, []);
+  }, [])
 
-  return mousePosition;
-};
+  return mousePosition
+}
 
-const useDestroyOnClickOutside = () => {
+const useDestroyOnClick = () => {
   const [destroy, setDestroy] = React.useState(false)
 
   React.useEffect(() => {
@@ -36,7 +33,7 @@ const useDestroyOnClickOutside = () => {
       setDestroy(true)
     }
 
-    window.addEventListener('click', listener, { once: true });
+    window.addEventListener('click', listener, { once: true })
 
     return () => window.removeEventListener('click', listener)
   })
@@ -47,28 +44,37 @@ const useDestroyOnClickOutside = () => {
 // COMPONENTS
 const Card: React.FC<ScryfallResponse[0]> = ({...card}) => {
   const [hovered, setHovered] = React.useState(false)
+  const [, persist] = useStorage<ScryfallResponse[0]>('name')
+
+  const style = {
+    width: 'max(200px, 8rem)',
+    height: 'auto',
+    margin: 0
+  }
 
   return (
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <img
-        src={card.imageUrls.normal}
-        alt={card.name}
-        style={{
-          width: 'max(200px, 8rem)',
-          height: 'auto',
-          margin: 0,
-        }}
-      />
+      { 'imageUrls' in card &&
+        <img style={style} src={card.imageUrls.normal} alt={card.name}></img>
+      }
+      { 'faces' in card &&
+        <div className="mdfc">
+          <img style={style} src={card.faces[0].imageUrls.normal} alt={card.faces[0].name}></img>
+          <img style={style} src={card.faces[1].imageUrls.normal} alt={card.faces[1].name}></img>
+        </div>
+      }
+
       {hovered &&
         <button
-          onClick={() => addCardToCollection(card)}
+          onClick={async () => await persist(card)}
           style={{
             marginLeft: '.5rem',
+            backgroundColor: 'white',
           }}>
-            add {card.name} to collection
+            Add {card.name} to collection
         </button>
       }
   </div>)
@@ -83,13 +89,12 @@ const OutletContainer: React.FC<{children: React.ReactNode}> = ({children}) => {
     left: `${mousePosition.x ?? 0}px`,
     top: `${mousePosition.y ?? 0}px`,
   }}>
-    {/* { JSON.stringify(mousePosition) } */}
     {children}
   </div>
 }
 
 const Outlet: React.FC<{response: ScryfallResponse}> = ({ response }) => {
-  const destroy = useDestroyOnClickOutside()
+  const destroy = useDestroyOnClick()
 
   if (destroy) {
     return <></>
