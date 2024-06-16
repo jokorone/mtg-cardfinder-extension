@@ -1,8 +1,8 @@
-import { queryScryfallSearch } from 'lib/api/queryScryfallSearch';
+import React from 'react';
 import { createRoot } from 'react-dom/client';
 
+import { queryScryfallSearch } from 'lib/api/queryScryfallSearch';
 import Outlet from './Outlet';
-import React from 'react';
 
 (async function() {
   const selection = getSelection().toString()

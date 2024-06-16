@@ -1,18 +1,16 @@
 import browser from 'webextension-polyfill'
 import {queryScryfallSearch} from 'lib/api/queryScryfallSearch'
+import { useStore } from 'lib/storage';
+import type { CardCollection } from 'lib/collection';
 
+const { model, ...store } = useStore<CardCollection>('collections');
 
-const registerContentScript = async () => {
-  let [tab] = await browser.tabs.query({ active: true, currentWindow: true })
-
-  browser.scripting.executeScript({
-    target: { tabId: tab.id },
-    files: ["js/contentScript.bundle.js"],
-  })
-}
-
-browser.runtime.onInstalled.addListener((): void => {
+browser.runtime.onInstalled.addListener(async () => {
   console.log('🦄', 'extension installed');
+
+  await store.init()
+
+  console.log('init menus', model);
 
   browser.contextMenus.create(
     {
@@ -27,6 +25,20 @@ browser.runtime.onInstalled.addListener((): void => {
       }
     }
   );
+
+  browser.contextMenus.create({
+    id: "separator-1",
+    type: "separator",
+    contexts: ["all"],
+  })
+
+  for (let name of model.keys()) {
+    browser.contextMenus.create({
+      id: `collection-menu::${name}`,
+      contexts: ['selection'],
+      title: `Add to ${name}`,
+    })
+  }
 
   const executeContentSript = (tab: browser.Tabs.Tab) => {
     browser.scripting.executeScript({
@@ -45,6 +57,7 @@ browser.runtime.onInstalled.addListener((): void => {
 
   browser.contextMenus.onClicked.addListener(async (info, tab) => {
     if (!info.selectionText) return;
+    console.log(info);
 
     switch (info.menuItemId) {
       case 'log-selection':
@@ -65,6 +78,10 @@ browser.runtime.onInstalled.addListener((): void => {
         }
         break;
       default:
+        const [,targetCollection] = info.menuItemId.toString().split('::')
+        console.log('targeting:', targetCollection);
+
+
         break;
     }
   });

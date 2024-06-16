@@ -4,17 +4,18 @@ type SingleSource = {
   name: string,
   imageUrls: Record<string, string>;
 }
-type ImageSource = SingleSource | {
-  faces: [SingleSource, SingleSource]
+type ImageSource = Prettify<SingleSource> | {
+  faces: [Prettify<SingleSource>, Prettify<SingleSource>]
 }
 
-
-export type ScryfallResponse = Array<{
+export type CardModel = {
   name: string;
   directLink: string;
   relatedUrls: Array<string>;
   prices: Record<string, string>;
-} & ImageSource>
+} & ImageSource
+
+export type ScryfallResponse = Array<CardModel>
 
 
 export const queryScryfallSearch = createAPIMethod<
@@ -63,8 +64,7 @@ export const queryScryfallSearch = createAPIMethod<
     return data.map((card) => {
       const imageSource = 'image_uris' in card
         ? { imageUrls: card.image_uris }
-        : { faces:
-          card.card_faces.map(
+        : { faces: card.card_faces.map(
             ({name, image_uris}) => ({ name, imageUrls: image_uris })
           )
         }
